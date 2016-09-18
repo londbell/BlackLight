@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2015 Peter Cai
  *
  * This file is part of BlackLight
@@ -19,7 +19,6 @@
 
 package info.papdt.blacklight.ui.settings;
 
-import android.support.v7.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
@@ -28,6 +27,7 @@ import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.support.v7.app.AlertDialog;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -37,9 +37,9 @@ import info.papdt.blacklight.R;
 import info.papdt.blacklight.cache.database.DataBaseHelper;
 import info.papdt.blacklight.cache.login.LoginApiCache;
 import info.papdt.blacklight.support.CrashHandler;
+import info.papdt.blacklight.support.PermissionUtility;
 import info.papdt.blacklight.support.Settings;
 import info.papdt.blacklight.support.Utility;
-import info.papdt.blacklight.support.PermissionUtility;
 import info.papdt.blacklight.support.feedback.SubmitLogTask;
 import info.papdt.blacklight.ui.entry.EntryActivity;
 import info.papdt.blacklight.ui.feedback.FeedbackActivity;
@@ -64,7 +64,7 @@ public class SettingsFragment extends PreferenceFragment implements
 	private static final String NOTIFY_TYPE = "notification_type";
 
 	private Settings mSettings;
-	
+
 	// Life needs joy!
 	private int mClickCount = 0;
 	private String[] mRefusals;
@@ -95,6 +95,7 @@ public class SettingsFragment extends PreferenceFragment implements
 	private CheckBoxPreference mPrefFastScroll;
 	private CheckBoxPreference mPrefShakeToReturn;
 	private CheckBoxPreference mPrefRightHanded;
+	private CheckBoxPreference mPrefStyleText;
 	private EditTextPreference mPrefKeyword;
 
 	// Notification
@@ -140,7 +141,8 @@ public class SettingsFragment extends PreferenceFragment implements
 		mPrefAutoNoPic = (CheckBoxPreference) findPreference(Settings.AUTO_NOPIC);
 		mPrefDonation = findPreference(DONATION);
 		mPrefKeyword = (EditTextPreference) findPreference(Settings.KEYWORD);
-		
+		mPrefStyleText = (CheckBoxPreference) findPreference(Settings.STYLE_TEXT);
+
 		// Data
 		String version = "Unknown";
 		try {
@@ -162,6 +164,7 @@ public class SettingsFragment extends PreferenceFragment implements
 		mPrefShowBigtext.setChecked(mSettings.getBoolean(Settings.SHOW_BIGTEXT, false));
 		mPrefAutoSubmitLog.setChecked(mSettings.getBoolean(
 				Settings.AUTO_SUBMIT_LOG,false));
+		mPrefStyleText.setChecked(mSettings.getBoolean(Settings.STYLE_TEXT, true));
 
 		if (PermissionUtility.hasStoragePermission(getActivity())) {
 			mPrefLog.setSummary(CrashHandler.CRASH_LOG);
@@ -175,8 +178,10 @@ public class SettingsFragment extends PreferenceFragment implements
 				this.getResources()
 				.getStringArray(R.array.interval_name) [mSettings.getInt(Settings.NOTIFICATION_INTERVAL, 1)]
 						);
+		int lang = Utility.getCurrentLanguage(getActivity());
+		if (lang == Utility.LANG_SYS) lang = 3;
 		mPrefLang.setSummary(
-				this.getResources().getStringArray(R.array.langs) [Utility.getCurrentLanguage(getActivity())]);
+				this.getResources().getStringArray(R.array.langs) [lang]);
 		mPrefAutoNoPic.setChecked(mSettings.getBoolean(Settings.AUTO_NOPIC, true));
 		mPrefKeyword.setText(mSettings.getString(Settings.KEYWORD, ""));
 
@@ -184,7 +189,7 @@ public class SettingsFragment extends PreferenceFragment implements
 		if(android.os.Build.VERSION.SDK_INT < 16){
 			mPrefShowBigtext.setEnabled(false);
 		}
-		
+
 		// Set
 		mPrefLicense.setOnPreferenceClickListener(this);
 		mPrefSourceCode.setOnPreferenceClickListener(this);
@@ -211,6 +216,7 @@ public class SettingsFragment extends PreferenceFragment implements
 		mPrefLang.setOnPreferenceClickListener(this);
 		mPrefDonation.setOnPreferenceClickListener(this);
 		mPrefKeyword.setOnPreferenceChangeListener(this);
+		mPrefStyleText.setOnPreferenceChangeListener(this);
 		mPrefVersion.setOnPreferenceClickListener(this);
 	}
 
@@ -351,20 +357,28 @@ public class SettingsFragment extends PreferenceFragment implements
 			mSettings.putString(Settings.KEYWORD, String.valueOf(newValue));
 			Toast.makeText(getActivity(), R.string.needs_restart, Toast.LENGTH_SHORT).show();
 			return true;
+		} else if (preference == mPrefStyleText) {
+			mSettings.putBoolean(Settings.STYLE_TEXT,
+					Boolean.parseBoolean(newValue.toString()));
+			Toast.makeText(getActivity(), R.string.needs_restart, Toast.LENGTH_SHORT).show();
+			return true;
 		}
 
 		return false;
 	}
 
 	private void showLangDialog() {
+		int lang = Utility.getCurrentLanguage(getActivity());
+		if(lang == Utility.LANG_SYS) lang = 3;
 		new AlertDialog.Builder(getActivity())
 			.setTitle(getString(R.string.language))
 			.setSingleChoiceItems(
-					getResources().getStringArray(R.array.langs), Utility.getCurrentLanguage(getActivity()),
+					getResources().getStringArray(R.array.langs), lang,
 					new DialogInterface.OnClickListener() {
 						@Override
 						public void onClick(DialogInterface dialog, int which) {
-							mSettings.putInt(Settings.LANGUAGE, which);
+							if(which != 3) mSettings.putInt(Settings.LANGUAGE, which);
+							else mSettings.putInt(Settings.LANGUAGE, Utility.LANG_SYS);
 							dialog.dismiss();
 							getActivity().recreate();
 						}
@@ -373,7 +387,7 @@ public class SettingsFragment extends PreferenceFragment implements
 			.show();
 
 	}
-	
+
 	private void showIntervalSetDialog(){
 		new AlertDialog.Builder(getActivity())
 			.setTitle(getString(R.string.set_interval))
@@ -424,7 +438,7 @@ public class SettingsFragment extends PreferenceFragment implements
 			})
 			.show();
 	}
-	
+
 	private Runnable clearClickCount = new Runnable() {
 		@Override
 		public void run() {
@@ -434,6 +448,7 @@ public class SettingsFragment extends PreferenceFragment implements
 	private void boom() {
 		getActivity().getWindow().getDecorView().removeCallbacks(clearClickCount);
 		if (mClickCount == 5) {
+			mPrefVersion.setEnabled(false);
 			Toast.makeText(getActivity(), R.string.enough, Toast.LENGTH_SHORT).show();
 			getActivity().getWindow().getDecorView().postDelayed(new Runnable() {
 				@Override
@@ -445,8 +460,8 @@ public class SettingsFragment extends PreferenceFragment implements
 			Toast.makeText(getActivity(), mRefusals[mClickCount], Toast.LENGTH_SHORT).show();
 			getActivity().getWindow().getDecorView().postDelayed(clearClickCount, 3000);
 		}
-		
+
 		mClickCount++;
 	}
-	
+
 }

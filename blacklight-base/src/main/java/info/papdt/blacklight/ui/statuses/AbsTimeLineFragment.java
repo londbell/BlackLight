@@ -23,6 +23,12 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.view.ViewCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,15 +36,7 @@ import android.view.ViewTreeObserver;
 import android.view.animation.AlphaAnimation;
 import android.widget.RelativeLayout;
 
-import android.support.v4.view.ViewCompat;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
-
 import info.papdt.blacklight.R;
-import info.papdt.blacklight.cache.statuses.HomeTimeLineApiCache;
 import info.papdt.blacklight.support.AsyncTask;
 import info.papdt.blacklight.support.Settings;
 import info.papdt.blacklight.support.Utility;
@@ -58,7 +56,6 @@ SwipeRefreshLayout.OnRefreshListener, MainActivity.Refresher, MainActivity.Heade
 	protected View mShadow, mScroller, mOrbit;
 	protected T mAdapter;
 	protected LinearLayoutManager mManager;
-	//protected HomeTimeLineApiCache mCache;
 
 	protected Settings mSettings;
 
@@ -86,7 +83,7 @@ SwipeRefreshLayout.OnRefreshListener, MainActivity.Refresher, MainActivity.Heade
 		@Override
 		public void run() {
 			if (mNewPosition != -1) {
-				mList.smoothScrollToPosition(mNewPosition);
+				mList.scrollToPosition(mNewPosition);
 				mNewPosition = -1;
 			}
 		}
@@ -262,7 +259,7 @@ SwipeRefreshLayout.OnRefreshListener, MainActivity.Refresher, MainActivity.Heade
 		if (mShadow != null)
 			mShadow.bringToFront();
 
-		if (mFastScrollEnabled) {
+		if (mFastScrollEnabled && !(getActivity() instanceof SingleActivity)) {
 			mOrbit.setVisibility(View.VISIBLE);
 			mScroller.setVisibility(View.VISIBLE);
 
@@ -342,12 +339,8 @@ SwipeRefreshLayout.OnRefreshListener, MainActivity.Refresher, MainActivity.Heade
 
 	@Override
 	public void doRefresh() {
-		if (mManager.findFirstVisibleItemPosition() <= 20) {
-			mList.smoothScrollToPosition(0);
-		} else {
-			mList.scrollToPosition(1);
-			mList.smoothScrollToPosition(0);
-		}
+		mList.scrollToPosition(1); // Peter does not know why
+		mList.smoothScrollToPosition(0);
 
 		mList.post(new Runnable() {
 			@Override
@@ -373,7 +366,12 @@ SwipeRefreshLayout.OnRefreshListener, MainActivity.Refresher, MainActivity.Heade
 				pos = 0;
 			}
 
-			mList.smoothScrollToPosition(pos);
+			if (pos == 0) {
+				mList.scrollToPosition(1);
+				mList.smoothScrollToPosition(pos);
+			} else {
+				mList.scrollToPosition(pos);
+			}
 		}
 	}
 

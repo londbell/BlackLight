@@ -19,8 +19,6 @@
 -->
 <resources>
 
-	<string name="app_name">BlackLight</string>
-
 	<!-- App Key -->
 	<string name="key_gist" translatable="false">https://gist.github.com/PeterCxy/3085799055f63c63c911</string>
 	<string name="custom">Custom</string>
@@ -129,6 +127,15 @@
 	<string name="follow">Follow</string>
 	<string name="unfollow">Unfollow</string>
 	<string name="change_group">Change group</string>
+	<string name="show_orig">Only original</string>
+	<string name="show_all">Show all</string>
+
+	<!-- User Profile -->
+	<string name="uid">UID</string>
+	<string name="created_at">Created At</string>
+	<string name="location">Location</string>
+	<string name="verified_reason">Verified Reason</string>
+	<string name="gender">Gender</string>
 
 	<!-- Units -->
 	<string name="ten_thousand">null</string>
@@ -167,12 +174,15 @@
 		<item>\@vip.sina.com</item>
 		<item>\@vip.qq.com</item>
 		<item>\@yeah.net</item>
+		<item>\@outlook.com</item>
 	</string-array>
 
 	<string-array name="contributor_weibo_uids" translatable="false">
 		<item>1870051034</item>
 		<item>1689129907</item>
 		<item>2278020463</item>
+		<item>1934471601</item>
+		<item>1694015524</item>
 		<item>1719269605</item>
 		<item>2121014783</item>
 		<item>1948661843</item>
@@ -232,6 +242,7 @@
 	<string name="auto_nopic_sum">Load pictures only if WiFi is connected</string>
 	<string name="keyword">Keyword filtering</string>
 	<string name="keyword_sum">Multiple keywords should be split by \", \" (a comma and a space), Regular Expressions should be wrapped by \"`\".</string>
+	<string name="style_text">Markdown parsing</string>
 	<string name="show_bigtext">Show notification details</string>
 	<string name="show_bigtext_sum">Show detailed information in notifications (Valid on Android 4.1+). May cause more power or traffic consumption.</string>
 	<string-array name="interval_name">
@@ -247,6 +258,7 @@
 		<item>English</item>
 		<item>简体中文</item>
 		<item>繁體中文</item>
+		<item>跟随系统(Follow system)</item>
 	</string-array>
 
 	<!-- Donation -->
@@ -261,6 +273,8 @@
 	<string name="xavieryao_alipay" translatable="false">xavieryao@live.cn</string>
 	<string name="micromacer">Micromacer (Designer)</string>
 	<string name="micromacer_alipay" translatable="false">micromacer@me.com</string>
+	<string name="harrychen">Harry Chen (Bug Fixer)</string>
+	<string name="harrychen_alipay" translatable="false">harry-chen@outlook.com</string>
 
 	<!-- Feedback -->
 	<string name="fb">Feedback</string>
@@ -315,4 +329,6 @@
 	<!-- Permissions -->
 	<string name="perm_sdcard_title">SDCard permission</string>
 	<string name="perm_sdcard">SDCard permission is needed to save your images to sdcard and save crash logs.</string>
+
+	<string name="fetching_splash">Fetching 梗...</string>
 </resources>

@@ -19,12 +19,8 @@
 
 package info.papdt.blacklight.ui.main;
 
-import android.support.v7.app.AlertDialog;
 import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
@@ -32,31 +28,25 @@ import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
+import android.support.v13.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
-import android.view.ContextThemeWrapper;
 import android.view.Gravity;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.view.animation.AlphaAnimation;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v4.widget.SwipeRefreshLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v13.app.FragmentStatePagerAdapter;
 
 import com.quinny898.library.persistentsearch.SearchBox;
 import com.quinny898.library.persistentsearch.SearchResult;
@@ -72,13 +62,11 @@ import info.papdt.blacklight.cache.user.UserApiCache;
 import info.papdt.blacklight.model.GroupListModel;
 import info.papdt.blacklight.model.UserModel;
 import info.papdt.blacklight.support.AsyncTask;
-import info.papdt.blacklight.support.Emoticons;
-import info.papdt.blacklight.support.LogF;
+import info.papdt.blacklight.support.Binded;
 import info.papdt.blacklight.support.Settings;
 import info.papdt.blacklight.support.Utility;
-import info.papdt.blacklight.support.Binded;
-import info.papdt.blacklight.ui.comments.CommentTimeLineFragment;
 import info.papdt.blacklight.ui.comments.CommentMentionsTimeLineFragment;
+import info.papdt.blacklight.ui.comments.CommentTimeLineFragment;
 import info.papdt.blacklight.ui.common.FloatingActionButton;
 import info.papdt.blacklight.ui.common.SlidingTabLayout;
 import info.papdt.blacklight.ui.common.SlidingTabStrip;
@@ -92,6 +80,7 @@ import info.papdt.blacklight.ui.statuses.HomeTimeLineFragment;
 import info.papdt.blacklight.ui.statuses.MentionsTimeLineFragment;
 import info.papdt.blacklight.ui.statuses.NewPostActivity;
 import info.papdt.blacklight.ui.statuses.UserTimeLineActivity;
+
 import static info.papdt.blacklight.BuildConfig.DEBUG;
 
 /* Main Container Activity */
@@ -177,9 +166,7 @@ public class MainActivity extends ToolbarActivity implements View.OnClickListene
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		mLang = Utility.getCurrentLanguage(this);
-		if (mLang > -1) {
-			Utility.changeLanguage(this, mLang);
-		}
+		Utility.changeLanguage(this, mLang);
 
 		Utility.initDarkMode(this);
 		mLayout = R.layout.main;
@@ -329,7 +316,7 @@ public class MainActivity extends ToolbarActivity implements View.OnClickListene
 		mTabs.notifyIndicatorColorChanged();
 		mToolbarTabs.setCustomTabColorizer(colorizer);
 		mToolbarTabs.notifyIndicatorColorChanged();
-		
+
 		mToolbarTabs.setOnClickCurrentTabListener(new SlidingTabLayout.OnClickCurrentTabListener() {
 			@Override
 			public void onClick(int pos) {
@@ -550,6 +537,14 @@ public class MainActivity extends ToolbarActivity implements View.OnClickListene
 		if (requestCode == REQUEST_LOGIN && resultCode == RESULT_OK) {
 			mMultiUserFragment.reload();
 		}
+
+		// speech request code used by PersistentSearch
+		if (requestCode == SearchBox.REQUEST_SPEECH_INPUT) {
+			if (resultCode == RESULT_OK && null != data) {
+				List<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+				mSearchBox.setSearchString(result.get(0));
+			}
+		}
 	}
 
 	@Override
@@ -583,7 +578,12 @@ public class MainActivity extends ToolbarActivity implements View.OnClickListene
 	public void mic(View view) {
 		// Is causing crashes. Abandon it.
 		//mSearchBox.micClick(this);
-		mSearchBox.setSearchString("");
+		// crash? just ignore it.
+		try {
+			mSearchBox.micClick(this);
+		} catch (Exception e) {
+			// ignored
+		}
 	}
 
 	public void updateHeaderTranslation(float factor) {
@@ -622,17 +622,16 @@ public class MainActivity extends ToolbarActivity implements View.OnClickListene
 	}
 
 	public void updateSplashes() {
-		// 梗
-		String[] splashes = getResources().getStringArray(R.array.title_splashes);
-		getSupportActionBar().setTitle(splashes[new Random().nextInt(splashes.length)]);
+		// Okay we do not need 梗 on Toolbar any more.
+		getSupportActionBar().setTitle(R.string.app_name);
 
-		// 梗 in search box
+		/*// 梗 in search box
 		if (Math.random() > 0.6) { // Make this a matter of possibility
 			splashes = getResources().getStringArray(R.array.splashes);
 			mSearchBox.setLogoText(splashes[new Random().nextInt(splashes.length)]);
 		} else {
 			mSearchBox.setLogoText("");
-		}
+		}*/
 	}
 
 	// For fragments to pass events

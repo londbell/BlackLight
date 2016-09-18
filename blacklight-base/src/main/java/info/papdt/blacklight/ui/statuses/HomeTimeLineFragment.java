@@ -1,11 +1,10 @@
 package info.papdt.blacklight.ui.statuses;
 
 import android.os.Bundle;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
-import android.support.v7.widget.RecyclerView;
 
 import info.papdt.blacklight.support.Settings;
 import info.papdt.blacklight.ui.main.MainActivity;
@@ -20,7 +19,7 @@ public class HomeTimeLineFragment extends TimeLineFragment
 		// Restore position
 		int pos = mSettings.getInt(Settings.LAST_POSITION, 0);
 		if (pos > 0 && pos < mAdapter.getCount()) {
-			mList.smoothScrollToPosition(pos);
+			mList.scrollToPosition(pos);
 		}
 		mSettings.putInt(Settings.LAST_POSITION, 0);
 		

@@ -1,19 +1,28 @@
--optimizationpasses 5 
+# should be removed in the furture
+-ignorewarn
+
+# disable obfuscate, BL is open source
+-dontobfuscate
+# http://stackoverflow.com/a/7587680/832776
+#-optimizationpasses 5 
+-optimizations !code/allocation/variable
+
 -keepattributes *Annotation*
 -keepattributes Signature
 
+# Gson
 -keep class sun.misc.Unsafe { *; }
 
+# Gson model
 -keep class info.papdt.blacklight.model.** { *; }
 -keep class info.papdt.blacklight.support.Binded { *; }
 -keepclassmembers class * {
     @info.papdt.blacklight.support.Binded *;
 }
 
--dontwarn android.support.**
-  
--keep public class * extends android.app.Activity
--keep public class * extends android.app.Application
--keep public class * extends android.app.Service
--keep public class * extends android.content.BroadcastReceiver
--keep public class * extends android.content.ContentProvider
+# picasso
+-dontwarn com.squareup.okhttp.**
+-dontwarn com.squareup.okhttp3.**
+
+# Gif module
+-keep class pl.droidsonroids.gif.**

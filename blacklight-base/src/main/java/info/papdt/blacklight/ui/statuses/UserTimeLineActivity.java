@@ -19,13 +19,13 @@
 
 package info.papdt.blacklight.ui.statuses;
 
-import android.support.v7.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -38,8 +38,6 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.sothree.slidinguppanel.SlidingUpPanelLayout;
-
 import info.papdt.blacklight.R;
 import info.papdt.blacklight.api.friendships.FriendsApi;
 import info.papdt.blacklight.api.friendships.GroupsApi;
@@ -49,16 +47,19 @@ import info.papdt.blacklight.model.GroupListModel;
 import info.papdt.blacklight.model.GroupModel;
 import info.papdt.blacklight.model.UserModel;
 import info.papdt.blacklight.support.AsyncTask;
-import info.papdt.blacklight.support.Utility;
 import info.papdt.blacklight.support.Binded;
+import info.papdt.blacklight.support.Utility;
 import info.papdt.blacklight.ui.common.AbsActivity;
 import info.papdt.blacklight.ui.common.GenerousSlidingUpPanelLayout;
 import info.papdt.blacklight.ui.directmessage.DirectMessageConversationActivity;
 import info.papdt.blacklight.ui.friendships.FriendsActivity;
 
+import static info.papdt.blacklight.BuildConfig.DEBUG;
+
 public class UserTimeLineActivity extends AbsActivity
 {
-	private UserTimeLineFragment mFragment;
+	private UserTimeLineFragment mFragmentAll;
+	private UserTimeLineFragment mFragmentOrig;
 	private UserModel mModel;
 
 	private TextView mFollowState;
@@ -77,8 +78,11 @@ public class UserTimeLineActivity extends AbsActivity
 
 	private MenuItem mMenuFollow;
 	private MenuItem mMenuGroup;
+	private MenuItem mMenuShowAll, mMenuShowOrig;
 
 	private UserApiCache mCache;
+
+	private boolean mOnlyOrig = false;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -117,13 +121,18 @@ public class UserTimeLineActivity extends AbsActivity
 		Utility.bindOnClick(this, mFollowingContainer, "viewFriends");
 		Utility.bindOnClick(this, mFollowersContainer, "viewFollowers");
 		Utility.bindOnClick(this, info, dim, "showOrHideInfo");
+		Utility.bindOnLongClick(this, info, dim, "viewUserProfile");
 
 		getSupportActionBar().setTitle(mModel.name);
 
 		// Follower state (following/followed/each other)
 		resetFollowState();
-		if (mModel != null && mModel.id.equals((new UserApiCache(this).getUser( (new LoginApiCache(this).getUid()) ).id))) {
-			mLayoutFollowState.setVisibility(View.GONE);
+		try {
+			if (mModel != null && mModel.id.equals((new UserApiCache(this).getUser((new LoginApiCache(this).getUid())).id))) {
+				mLayoutFollowState.setVisibility(View.GONE);
+			}
+		} catch (NullPointerException e) {
+			// do nothing like ostrich.
 		}
 
 		// Also view values
@@ -141,8 +150,8 @@ public class UserTimeLineActivity extends AbsActivity
 
 		new Downloader().execute();
 
-		mFragment = new UserTimeLineFragment(mModel.id);
-		getFragmentManager().beginTransaction().replace(R.id.user_timeline_container, mFragment).commit();
+		mFragmentAll = new UserTimeLineFragment(mModel.id, false);
+		getFragmentManager().beginTransaction().replace(R.id.user_timeline_container, mFragmentAll).commit();
 
 		// Change panel height when measured
 		final View container = findViewById(R.id.user_container);
@@ -154,7 +163,7 @@ public class UserTimeLineActivity extends AbsActivity
 				int containerHeight = container.getMeasuredHeight();
 				int slideHeight = mSlide.getMeasuredHeight();
 				mSlide.setPanelHeight((int) (slideHeight - containerHeight + Utility.dp2px(UserTimeLineActivity.this, 20.0f)));
-				mSlide.setChildListView(mFragment.getList());
+				mSlide.setChildListView(mFragmentAll.getList());
 				return true;
 			}
 		});
@@ -164,6 +173,12 @@ public class UserTimeLineActivity extends AbsActivity
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 		inflater.inflate(R.menu.user, menu);
+
+		if (DEBUG) {
+			// Sometimes I need the ID of contributors
+			menu.add(233, 233, 233, mModel.id);
+		}
+
 		mMenuFollow = menu.findItem(R.id.follow);
 		mMenuGroup = menu.findItem(R.id.group);
 		if (mModel != null && new LoginApiCache(this).getUid().equals(mModel.id)) {
@@ -172,6 +187,22 @@ public class UserTimeLineActivity extends AbsActivity
 			menu.findItem(R.id.send_dm).setVisible(false);
 		} else {
 			resetFollowState();
+		}
+
+		mMenuShowAll = menu.findItem(R.id.show_all);
+		mMenuShowOrig = menu.findItem(R.id.show_orig);
+
+		return true;
+	}
+
+	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		if (mOnlyOrig) {
+			mMenuShowOrig.setVisible(false);
+			mMenuShowAll.setVisible(true);
+		} else {
+			mMenuShowAll.setVisible(false);
+			mMenuShowOrig.setVisible(true);
 		}
 		return true;
 	}
@@ -184,6 +215,17 @@ public class UserTimeLineActivity extends AbsActivity
 			return true;
 		} else if (id == R.id.follow) {
 			follow();
+			return true;
+		} else if (id == R.id.show_orig) {
+			if (mFragmentOrig == null) {
+				mFragmentOrig = new UserTimeLineFragment(mModel.id, true);
+			}
+			getFragmentManager().beginTransaction().replace(R.id.user_timeline_container, mFragmentOrig).commit();
+			mOnlyOrig = true;
+			return true;
+		} else if (id == R.id.show_all) {
+			getFragmentManager().beginTransaction().replace(R.id.user_timeline_container, mFragmentAll).commit();
+			mOnlyOrig = false;
 			return true;
 		} else if (id == R.id.send_dm) {
 			Intent i = new Intent();
@@ -217,6 +259,16 @@ public class UserTimeLineActivity extends AbsActivity
 		i.putExtra("isFriends", false);
 		i.setClass(this, FriendsActivity.class);
 		startActivity(i);
+	}
+
+	@Binded
+	public boolean viewUserProfile() {
+		Intent i = new Intent();
+		i.setAction(Intent.ACTION_VIEW);
+		i.putExtra("user", mModel);
+		i.setClass(this, UserProfileActivity.class);
+		startActivity(i);
+		return true;
 	}
 
 	@Binded

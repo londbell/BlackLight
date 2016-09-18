@@ -45,6 +45,9 @@ public class Constants
 	public static final String DESTROY = SINA_BASE_URL + "statuses/destroy.json";
 	public static final String UPLOAD_PIC = SINA_BASE_URL + "statuses/upload_pic.json";
 	public static final String UPLOAD_URL_TEXT = SINA_BASE_URL + "statuses/upload_url_text.json";
+	public static final String QUERY_ID = SINA_BASE_URL + "statuses/queryid.json";
+	public static final String QUERY_MID = SINA_BASE_URL + "statuses/querymid.json";
+	public static final String SHOW = SINA_BASE_URL + "statuses/show.json";
 
 	// Comments
 	public static final String COMMENTS_TIMELINE = SINA_BASE_URL + "comments/timeline.json";
@@ -99,4 +102,11 @@ public class Constants
 	// Short Url
 	public static final String SHORT_URL_SHORTEN = SINA_BASE_URL + "short_url/shorten.json";
 	public static final String SHORT_URL_EXPAND = SINA_BASE_URL + "short_url/expand.json";
+
+	// Feedback and crash report
+	public static final String LOG_API = "https://bug.black.lighting/bl-crashlog";
+	public static final String FEEDBACK_API = "https://bug.black.lighting/bl-feedback";
+
+	//No one hates splashes
+	public static final String SPLASHES_API = "https://misc.typeblog.net/splash";
 }

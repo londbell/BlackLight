@@ -20,15 +20,13 @@
 package info.papdt.blacklight.ui.entry;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
-import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
-import android.text.TextUtils;
-import android.widget.Toast;
 
 import info.papdt.blacklight.cache.login.LoginApiCache;
+import info.papdt.blacklight.support.AsyncTask;
 import info.papdt.blacklight.support.WeiboUrlUtility;
 
 public class UrlEntryActivity extends Activity
@@ -47,6 +45,16 @@ public class UrlEntryActivity extends Activity
 			}
 		}
 		finish();
+	}
+
+	@Override
+	protected void onStart() {
+		super.onStart();
+
+		// workaround for M, see https://code.google.com/p/android-developer-preview/issues/detail?id=2353
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+			setVisible(true);
+		}
 	}
 
 	private class UrlParseTask extends AsyncTask<Uri, Void, Intent> {

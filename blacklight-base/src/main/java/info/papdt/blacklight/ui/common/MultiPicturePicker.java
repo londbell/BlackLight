@@ -26,16 +26,16 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.GridView;
 
-import java.io.File;
 import java.util.ArrayList;
 
 import info.papdt.blacklight.R;
 import info.papdt.blacklight.model.GalleryModel;
 import info.papdt.blacklight.support.Utility;
+import info.papdt.blacklight.support.PermissionUtility;
 import info.papdt.blacklight.support.adapter.GalleryAdapter;
+
 import static info.papdt.blacklight.BuildConfig.DEBUG;
 
 public class MultiPicturePicker extends AbsActivity {
@@ -55,11 +55,16 @@ public class MultiPicturePicker extends AbsActivity {
 		// Views
 		mGrid = Utility.findViewById(this, R.id.picker_grid);
 
-		buildAdapter();
+		PermissionUtility.storage(this, new Runnable() {
+			@Override
+			public void run() {
+				buildAdapter();
 
-		mGrid.setAdapter(mAdapter);
-		mGrid.setOnItemClickListener(mAdapter);
-		mGrid.setFastScrollEnabled(true);
+				mGrid.setAdapter(mAdapter);
+				mGrid.setOnItemClickListener(mAdapter);
+				mGrid.setFastScrollEnabled(true);
+			}
+		});
 	}
 
 	@Override

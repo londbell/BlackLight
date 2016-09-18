@@ -19,11 +19,10 @@
 
 package info.papdt.blacklight.ui.statuses;
 
-import android.content.SharedPreferences;
-import android.support.v7.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -34,6 +33,7 @@ import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.Selection;
 import android.text.Spannable;
@@ -63,9 +63,9 @@ import info.papdt.blacklight.cache.login.LoginApiCache;
 import info.papdt.blacklight.cache.user.UserApiCache;
 import info.papdt.blacklight.model.UserModel;
 import info.papdt.blacklight.support.AsyncTask;
+import info.papdt.blacklight.support.Binded;
 import info.papdt.blacklight.support.LongPostUtility;
 import info.papdt.blacklight.support.Utility;
-import info.papdt.blacklight.support.Binded;
 import info.papdt.blacklight.ui.comments.CommentOnActivity;
 import info.papdt.blacklight.ui.comments.ReplyToActivity;
 import info.papdt.blacklight.ui.common.AbsActivity;
@@ -165,9 +165,8 @@ public class NewPostActivity extends AbsActivity implements View.OnLongClickList
 		}
 
 		// Hints
-		if (Math.random() < 0.42){ // Make this a matter of possibility.
-			mHints = getResources().getStringArray(R.array.splashes);
-			mText.setHint(mHints[new Random().nextInt(mHints.length)]);
+		if (Math.random() > 0.42){ // Make this a matter of possibility.
+			new SplashGetter().execute();
 		}
 
 		// Fragments
@@ -263,11 +262,11 @@ public class NewPostActivity extends AbsActivity implements View.OnLongClickList
 			public void onGlobalLayout() {
 				mText.requestFocus();
 				mText.requestFocusFromTouch();
-				
+
 				// Draft
 				if (needCache())
 					mText.setText(mCache.getString(DRAFT, ""));
-					
+
 				// Must be removed
 				getWindow().getDecorView().getViewTreeObserver().removeGlobalOnLayoutListener(this);
 			}
@@ -425,8 +424,7 @@ public class NewPostActivity extends AbsActivity implements View.OnLongClickList
 
 	@Binded
 	public void avatar(){
-		mHints = getResources().getStringArray(R.array.splashes);
-		mText.setHint(mHints[new Random().nextInt(mHints.length)]);
+		new SplashGetter().execute();
 	}
 
 	@Binded
@@ -537,7 +535,7 @@ public class NewPostActivity extends AbsActivity implements View.OnLongClickList
 			// Post the pictures with long post
 			int size = mBitmaps.size();
 			Bitmap[] bitmaps = new Bitmap[size];
-			
+
 			for (int i = 0; i < size; i++) {
 				Bitmap bmp = mBitmaps.get(0);
 				String path = mPaths.get(0);
@@ -552,7 +550,7 @@ public class NewPostActivity extends AbsActivity implements View.OnLongClickList
 
 				mBitmaps.remove(0);
 				mPaths.remove(0);
-				
+
 				bitmaps[i] = bmp;
 			}
 
@@ -666,5 +664,14 @@ public class NewPostActivity extends AbsActivity implements View.OnLongClickList
 			super.onProgressUpdate();
 		}
 
+	}
+
+	private class SplashGetter extends AsyncTask<Void, Void, String> {
+		@Override
+		protected void onPreExecute() { mText.setHint(R.string.fetching_splash);	}
+		@Override
+		protected String doInBackground(Void... params) { return Utility.getSplash(); }
+		@Override
+		protected void onPostExecute(String result) { mText.setHint(result); }
 	}
 }

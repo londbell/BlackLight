@@ -31,13 +31,10 @@ import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources.NotFoundException;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.FontMetrics;
-import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.ConnectivityManager;
 import android.net.Uri;
@@ -47,7 +44,6 @@ import android.opengl.GLES20;
 import android.opengl.GLES30;
 import android.os.Build;
 import android.os.Environment;
-import android.text.TextUtils;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
@@ -59,16 +55,19 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
+import org.json.JSONObject;
+
 import info.papdt.blacklight.R;
+import info.papdt.blacklight.api.Constants;
+import info.papdt.blacklight.support.http.HttpUtility;
+import info.papdt.blacklight.support.http.WeiboParameters;
 import info.papdt.blacklight.service.ReminderService;
 
 import static info.papdt.blacklight.BuildConfig.DEBUG;
@@ -81,6 +80,11 @@ public class Utility
 	private static final int REQUEST_CODE = 100001;
 
 	public static String lastPicPath;
+
+	public static final int LANG_EN_US = 0;
+	public static final int LANG_ZH_HANS = 1;
+	public static final int LANG_ZH_HANT = 2;
+	public static final int LANG_SYS = -1;
 
 	public static int action_bar_title = -1;
 
@@ -210,27 +214,7 @@ public class Utility
 	}
 
 	public static int getCurrentLanguage(Context context) {
-		int lang = Settings.getInstance(context).getInt(Settings.LANGUAGE, -1);
-		if (lang == -1) {
-			String language = Locale.getDefault().getLanguage();
-			String country = Locale.getDefault().getCountry();
-
-			if (DEBUG) {
-				Log.d(TAG, "Locale.getLanguage() = " + language);
-			}
-
-			if (language.equalsIgnoreCase("zh")) {
-				if (country.equalsIgnoreCase("CN")) {
-					lang = 1;
-				} else {
-					lang = 2;
-				}
-			} else {
-				lang = 0;
-			}
-		}
-
-		return lang;
+		return Settings.getInstance(context).getInt(Settings.LANGUAGE, LANG_SYS);
 	}
 
 	// Must be called before setContentView()
@@ -239,21 +223,24 @@ public class Utility
 		String country = null;
 
 		switch (lang) {
-			case 1:
+			case LANG_ZH_HANS:
 				language = "zh";
 				country = "CN";
 				break;
-			case 2:
+			case LANG_ZH_HANT:
 				language = "zh";
 				country = "TW";
 				break;
-			default:
+			case LANG_EN_US:
 				language = "en";
 				country = "US";
 				break;
+			case LANG_SYS:
+				break;
+			default:
+				throw new IllegalStateException("But I can not speak this language!");
 		}
-
-		Locale locale = new Locale(language, country);
+		Locale locale = (language == null)?Locale.getDefault():new Locale(language, country);
 		Configuration conf = context.getResources().getConfiguration();
 		conf.locale = locale;
 		context.getApplicationContext().getResources().updateConfiguration(conf, context.getResources().getDisplayMetrics());
@@ -436,7 +423,7 @@ public class Utility
 		return (int) Math.ceil(fm.descent - fm.ascent);
 	}
 
-	
+
 	public static void notifyScanPhotos(Context context, String path) {
 		Intent i = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
 		Uri uri = Uri.fromFile(new File(path));
@@ -809,6 +796,21 @@ public class Utility
 		mediaFile = new File(mediaStorageDir.getPath() + File.separator +
 				"IMG_"+ timeStamp + ".jpg");
 		return mediaFile;
+	}
+
+	public static String getSplash(){
+		String splash = "";
+		try{
+			WeiboParameters params = new WeiboParameters();
+			params.put("app", "bl");
+			String json = HttpUtility.doRequest(Constants.SPLASHES_API, params, HttpUtility.GET);
+			JSONObject jsonObj = new JSONObject(json);
+			splash = jsonObj.optString("content");
+		}
+		catch(Exception e){
+			Log.e(TAG, "Failed to get splash, bad luck.", e);
+		}
+		return splash;
 	}
 
 }
