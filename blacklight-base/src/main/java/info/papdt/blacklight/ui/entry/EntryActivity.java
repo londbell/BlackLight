@@ -23,6 +23,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 
 import info.papdt.blacklight.cache.file.FileCacheManager;
 import info.papdt.blacklight.cache.login.LoginApiCache;
@@ -44,6 +45,7 @@ public class EntryActivity extends Activity
 	@Override
 	@TargetApi(23)
 	protected void onCreate(Bundle savedInstanceState) {
+
 		// Only register the handler when permission is granted.
 		if (PermissionUtility.hasStoragePermission(this)) {
 			CrashHandler.init(this);

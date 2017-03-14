@@ -60,6 +60,9 @@ Thanks sina for those emoticons
 
 */
 
+/**
+ *
+ */
 public class Emoticons
 
 {
@@ -163,6 +166,7 @@ public class Emoticons
 		EMOTICONS.put("[做鬼脸]", "face290.png");
 
 		EMOTICONS.put("[阴险]", "face105.png");
+
 
 		EMOTICONS.put("[困]", "face059.png");
 
@@ -288,11 +292,13 @@ public class Emoticons
 
 		EMOTICONS.put("[霹雳]", "lxh_pili.png");
 
-		EMOTICONS.put("[doge]", "doge_org.gif");
+		EMOTICONS.put("[doge]", "doge_org.png");
 
-		EMOTICONS.put("[喵喵]", "mm_org.gif");
+		EMOTICONS.put("[喵喵]", "mm_org.png");
 
-		EMOTICONS.put("[笑cry]", "xiaoku_org.gif");
+		EMOTICONS.put("[笑cry]", "xiaoku_org.png");
+
+		EMOTICONS.put("[二哈]", "erha.png");
 
 	}
 

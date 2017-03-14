@@ -20,6 +20,7 @@
 package us.shandian.blacklight.snapshot;
 
 import android.os.Bundle;
+import android.util.Log;
 
 public class SettingsActivity extends info.papdt.blacklight.ui.settings.SettingsActivity
 {
